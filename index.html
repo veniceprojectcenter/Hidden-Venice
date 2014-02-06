@@ -30,6 +30,9 @@
 
       .arrow {
         display: none;
+        font-size: xx-large;
+        position: fixed;
+        top: 100px;
       }
       
       #block {
@@ -40,6 +43,14 @@
         height: 100%;
         background-color: white;
         display: none;
+      }
+
+      #left {
+        left: 5px;
+      }
+
+      #right {
+        right: 5px;
       }
       
       #back {
@@ -63,7 +74,17 @@
         var map = new google.maps.Map(document.getElementById("map-canvas"),
             mapOptions);
 
-        var churches = [
+        /* NOTE: This data set is missing a field from every church. Ideally,
+           we should have a "target" property specifying which direction to 
+           look when using the augmented reality mode. To get more details on
+           how the target value should be used, refer to the augmented reality
+           code near the bottom of the page, and the documentation refering
+           to orientation events: 
+           https://developer.mozilla.org/en-US/docs/WebAPI/Detecting_device_orientation 
+           When you have the target value for a church, simply add it to the
+           relevant object below (ie. with 'target: [somenumber]')
+         */
+        churches = [
           {
             center: new google.maps.LatLng(45.4415,12.32237),
             name: "Santa Lucia",
@@ -254,7 +275,7 @@
               '<div id="bodyContent">'+
               '<img src="' + churchData.imageurl + '" height="200px">'+
               '<br />'+
-              '<a href="#" onclick="initAugmented(\'' + churchData.imageurl + '\');">Travel back in time</a>' + 
+              '<a href="#" onclick="initAugmented(\'' + churches.indexOf(churchData) + '\');">Travel back in time</a>' + 
               '</div>'+
               '</div>');
             infowindow.open(map, marker);
@@ -277,9 +298,15 @@
        * beta is forward/backward tilt
        */
       var direction;
-      var target = 0; // TODO Fill in correct value
+      var target;
       var stream;
       window.ondeviceorientation = function (e) {   
+        if (!target) {
+          document.getElementById("left").style.display = "none";
+          document.getElementById("right").style.display = "none";
+          return;
+        }
+
         /* 
          * When the phone is turn for augmented reality, the phone's top
          * is pointing to the left or right, so we need to add an offset. This
@@ -299,7 +326,7 @@
         if (isChrome) direction = 180 - (direction - 180); // HACK ALERT! (See below)
         
         /* 
-         * Note to self: Firefox and chrome use different values for direction.
+         * Note: Firefox and chrome use different values for direction.
          * Both have N at 0/360 and S at 180. FF has E at 90 and W at 270 while
          * Chrome has the opposite. This uses firefox's values for now.
          * (Having E at 90 makes more sense, no?)
@@ -322,7 +349,7 @@
 
       function initAugmented(data) {
         var img = document.getElementById("image-overlay");
-        img.src = data;
+        img.src = churches[data].imageurl;
         img.style.display = "block";
         document.getElementById("localvideo").style.display = "block";
         document.getElementById("block").style.display = "block";
@@ -330,6 +357,8 @@
 
         img.style.marginLeft = "-" + img.width / 2 + "px";
         img.style.marginTop = "-" + img.height / 2 + "px";
+
+        target = churches[data].target;
         
         navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 
@@ -346,6 +375,9 @@
         document.getElementById("image-overlay").style.display = "none";
         document.getElementById("localvideo").style.display = "none";
         document.getElementById("block").style.display = "none";
+        document.getElementById("left").style.display = "none";
+        document.getElementById("right").style.display = "none";
+        document.getElementById("back").style.display = "none";
         stream.stop();
       }
 
@@ -356,18 +388,58 @@
           setTimeout(function() { element.play(); }, 100);
       }
     </script>
+
+
+	<script type="text/javascript">
+
+	/*GOOGLE ANALYTICS*/
+
+	  var _gaq = _gaq || [];
+	  _gaq.push(['_setAccount', 'UA-47662945-1']);
+	  _gaq.push(['_setDomainName', 'veniceprojectcenter.org']);
+	  _gaq.push(['_trackPageview']);
+	
+	  (function() {
+	    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+	    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+	    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+	  })();
+
+	</script>
+
+
+	<script type="text/javascript">
+
+	/*GOOGLE ANALYTICS*/
+
+	  var _gaq = _gaq || [];
+	  _gaq.push(['_setAccount', 'UA-47662945-1']);
+	  _gaq.push(['_setDomainName', 'veniceprojectcenter.org']);
+	  _gaq.push(['_trackPageview']);
+	
+	  (function() {
+	    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+	    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+	    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+	  })();
+
+	</script>
+
+
   </head>
   <body>
  <!--   <div style="font-family:'Berkshire Swash',cursive; text-align:center; font-size:50px; background-color:#b3d1ff">
     	Welcome to Mobile Museum of Venice
-    </div> --!>
+    </div> -->
     <div id="map-canvas"></div>
+    <div id="block"></div>
     <div style="float: left;" class="arrow" id="left">&lt;</div>
     <div style="float: right;" class="arrow" id="right">&gt;</div>
-    <div id="block"></div>
     <video id="localvideo"></video>
     <img id="image-overlay"/>
     <a id="back" href="#" onclick="endAugmented()">Go back</a>
+    <div style="position:fixed; left:0px; bottom:0px;">
+		<a href="http://veniceprojectcenter.org"><img src="/vpc25logo.png" left:0px bottom:0px position:fixed></a>
+	</div>
   </body>
 </html>
-
